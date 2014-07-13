@@ -68,6 +68,8 @@ def publish_tweets(api, tweets, sleeptime):
             except tweepy.TweepError as e:
                 print e
             time.sleep(sleeptime)
+    else:
+        print 'No tweet to publish'
 
 def main(argv):
     max_tweets = 50

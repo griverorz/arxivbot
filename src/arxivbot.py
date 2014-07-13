@@ -7,9 +7,14 @@ import re
 from datetime import datetime, timedelta
 import tweepy
 import sys, getopt, time
+import csv
 
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token_key, access_token_secret)
+with(open('credentials.txt', 'rb')) as f:
+    creds = csv.reader(f, delimiter=',')
+    creds = {row[0]: row[1] for row in creds}
+        
+auth = tweepy.OAuthHandler(creds['consumer_key'], creds['consumer_secret'])
+auth.set_access_token(creds['access_token_key'], creds['access_token_secret'])
 api = tweepy.API(auth)
 
 def get_papers(max_results):
@@ -61,16 +66,17 @@ def publish_tweets(api, tweets, sleeptime):
                 api.update_status(i)
                 print 'Status: "' + i[0:50] + '" succesfully tweeted'
             except tweepy.TweepError as e:
-                pass
+                print e
             time.sleep(sleeptime)
 
 def main(argv):
-    max_tweets = None
-    how_old = None
+    max_tweets = 50
+    how_old = 24
+    publish = True
     try:
-        opts, args = getopt.getopt(argv, 'hm:d:' ,['maxtweets=','delta='])
+        opts, args = getopt.getopt(argv, 'm:d:n' ,['maxtweets=','delta=', 'nopub='])
     except getopt.GetoptError:
-        print 'test.py -m <maxtweets> -d <deltatime>'
+        print 'test.py -m <maxtweets> -d <deltatime> -n <nopublish>'
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
@@ -80,8 +86,14 @@ def main(argv):
             max_tweets = int(arg)
         elif opt in ("-d", "--delta"):
             how_old = int(arg)
+        elif opt in ("-n", "--nopublish"):
+            publish = False
     tweets = create_tweets(max_tweets, how_old)
-    publish_tweets(api, tweets, 60*30)
+    if publish:
+        publish_tweets(api, tweets, 60*10)
+    else:
+        for i in tweets:
+            print i + '\n'
 
 if __name__ == "__main__":
     main(sys.argv[1:])

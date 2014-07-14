@@ -41,7 +41,7 @@ def clean_string(string):
 def parse_paper(papers):
     titlink = [{'time': i.published.text,
                 'title': clean_string(i.title.text),
-                'link': i.link['href']}
+                'link': i.id.text}
                for i in papers]
     return(titlink)
 

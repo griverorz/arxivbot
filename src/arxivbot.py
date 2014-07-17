@@ -58,7 +58,7 @@ class papers(object):
             return adate
 
         curr = datetime.strptime(paper['time'], '%Y-%m-%dT%H:%M:%SZ').date()
-        return (_prev_weekday(date.today()) - curr) == timedelta(days=0)
+        return _prev_weekday(date.today()) == curr
 
 
     def output(self):

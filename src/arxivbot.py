@@ -118,7 +118,7 @@ def main(argv):
         if opt == '-c':
             credentials = str(arg)
         if opt == '-t':
-            tdelta = str(arg)
+            tdelta = int(arg)
         if opt == '-m':
             max_results = int(arg)
         if opt == '-n':

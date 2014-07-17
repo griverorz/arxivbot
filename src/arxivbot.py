@@ -5,21 +5,18 @@ import urllib2
 from BeautifulSoup import BeautifulSoup
 import re
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import tweepy
 import sys
 import getopt
 import time
-import os
 
 
 class papers(object):
 
-    def __init__(self, fname, subjects, max_results, tdelta):
-        self.fname = fname
+    def __init__(self, subjects, max_results):
         self.subjects = subjects
         self.max_results = max_results
-        self.tdelta = tdelta
         self.raw = None
         self.data = None
 
@@ -50,26 +47,23 @@ class papers(object):
                     'link': i.id.text}
                      for i in self.raw]
 
+    def validate(self, paper):
+        def _prev_weekday(adate): 
+            ''' from here: 
+            http://stackoverflow.com/questions/12053633/previous-weekday-in-python
+            '''
+            adate -= timedelta(days=1)
+            while adate.weekday() > 4:
+                adate -= timedelta(days=1)
+            return adate
 
-    def write(self):
-        pd.DataFrame(self.data).to_csv(self.fname, index=False, header=False)
-
-
-    def validate(self, paper, timediff):
-        already_published = False
-        if os.path.isfile(self.fname):
-            if os.stat(self.fname).st_size is not 0:
-                tmp = pd.read_csv(self.fname, header=False)
-                already_published = (paper['link'] in str(tmp.ix[:, 0]))
-        timediff = timedelta(hours=timediff)
-        curr = datetime.strptime(paper['time'], '%Y-%m-%dT%H:%M:%SZ')
-        return (datetime.now() - curr < timediff) & (not already_published)
+        curr = datetime.strptime(paper['time'], '%Y-%m-%dT%H:%M:%SZ').date()
+        return (_prev_weekday(date.today()) - curr) == timedelta(days=0)
 
 
     def output(self):
         self.parse()
-        self.data = [i for i in self.data if self.validate(i, self.tdelta)]
-        self.write()
+        self.data = [i for i in self.data if self.validate(i)]
 
 
 class tweet(object):
@@ -109,28 +103,23 @@ class tweet(object):
 
 def main(argv):
     max_results = 50
-    tdelta = 50
     subjects = ('stat.AP', 'stat.CO', 'stat.ML', 'stat.ME', 'stat.TH')
     publish = True
     try:
-        opts, args = getopt.getopt(argv, 'c:f:m:t:n')
+        opts, args = getopt.getopt(argv, 'c:m:n')
     except getopt.GetoptError:
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print 'arxivbot.py -c <str> -f <str> -m <int> -d <int> -n'
+            print 'arxivbot.py -c <str> -m <int> -n'
             sys.exit()
-        if opt == '-f':
-            filename = str(arg)
         if opt == '-c':
             credentials = str(arg)
         if opt == '-m':
             max_results = int(arg)
-        if opt == '-t':
-            tdelta = int(arg)
         if opt == '-n':
             publish = False
-    data = papers(filename, subjects, max_results, tdelta)
+    data = papers(subjects, max_results)
     data.get()
     data.output()
 

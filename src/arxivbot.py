@@ -5,7 +5,7 @@ import urllib2
 from BeautifulSoup import BeautifulSoup
 import re
 import pandas as pd
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 import tweepy
 import sys
 import getopt
@@ -14,9 +14,10 @@ import time
 
 class papers(object):
 
-    def __init__(self, subjects, max_results):
+    def __init__(self, subjects, max_results, tdelta):
         self.subjects = subjects
         self.max_results = max_results
+        self.tdelta = tdelta
         self.raw = None
         self.data = None
 
@@ -57,8 +58,8 @@ class papers(object):
                 adate -= timedelta(days=1)
             return adate
 
-        curr = datetime.strptime(paper['time'], '%Y-%m-%dT%H:%M:%SZ').date()
-        return _prev_weekday(date.today()) == curr
+        curr = datetime.strptime(paper['time'], '%Y-%m-%dT%H:%M:%SZ')
+        return curr > datetime.now() - timedelta(hours=self.tdelta)
 
 
     def output(self):
@@ -104,29 +105,32 @@ class tweet(object):
 def main(argv):
     max_results = 50
     subjects = ('stat.AP', 'stat.CO', 'stat.ML', 'stat.ME', 'stat.TH')
+    tdelta = 6
     publish = True
     try:
-        opts, args = getopt.getopt(argv, 'c:m:n')
+        opts, args = getopt.getopt(argv, 'c:m:t:n')
     except getopt.GetoptError:
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print 'arxivbot.py -c <str> -m <int> -n'
+            print 'arxivbot.py -c <str> -m <int> -t <int> -n'
             sys.exit()
         if opt == '-c':
             credentials = str(arg)
+        if opt == '-t':
+            tdelta = str(arg)
         if opt == '-m':
             max_results = int(arg)
         if opt == '-n':
             publish = False
-    data = papers(subjects, max_results)
+    data = papers(subjects, max_results, tdelta)
     data.get()
     data.output()
 
     tw = tweet(credentials, data)
     tw.create_tweets()
     if publish:
-        tw.publish(60*10)
+        tw.publish(0.5)
     else:
         for i in tw.tweets:
             print i + '\n'

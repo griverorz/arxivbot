@@ -58,8 +58,8 @@ class papers(object):
                 adate -= timedelta(days=1)
             return adate
 
-        curr = datetime.strptime(paper['time'], '%Y-%m-%dT%H:%M:%SZ')
-        return curr > datetime.now() - timedelta(hours=self.tdelta)
+        curr = datetime.strptime(paper['time'], '%Y-%m-%dT%H:%M:%SZ').date()
+        return curr == datetime.now().date()
 
 
     def output(self):
@@ -97,7 +97,7 @@ class tweet(object):
                     print 'Status: "' + i[0:50] + '" succesfully tweeted'
                 except tweepy.TweepError as e:
                     print e
-                    time.sleep(sleeptime)
+                time.sleep(sleeptime)
         else:
             print 'No tweet to publish'
 
@@ -105,7 +105,7 @@ class tweet(object):
 def main(argv):
     max_results = 50
     subjects = ('stat.AP', 'stat.CO', 'stat.ML', 'stat.ME', 'stat.TH')
-    tdelta = 6
+    tdelta = 24
     publish = True
     try:
         opts, args = getopt.getopt(argv, 'c:m:t:n')
@@ -130,7 +130,7 @@ def main(argv):
     tw = tweet(credentials, data)
     tw.create_tweets()
     if publish:
-        tw.publish(0.5)
+        tw.publish(1)
     else:
         for i in tw.tweets:
             print i + '\n'

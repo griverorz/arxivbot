@@ -58,8 +58,10 @@ class papers(object):
                 adate -= timedelta(days=1)
             return adate
 
-        curr = datetime.strptime(paper['time'], '%Y-%m-%dT%H:%M:%SZ').date()
-        return curr == datetime.now().date()
+        curr = datetime.strptime(paper['time'], '%Y-%m-%dT%H:%M:%SZ')
+        yest_up = datetime.now() - timedelta(days=1)
+        yest_down = yest_up - timedelta(hours=self.tdelta)
+        return (curr > yest_down) & (curr < yest_up)
 
 
     def output(self):
@@ -104,8 +106,8 @@ class tweet(object):
 
 def main(argv):
     max_results = 50
+    tdelta = 3
     subjects = ('stat.AP', 'stat.CO', 'stat.ML', 'stat.ME', 'stat.TH')
-    tdelta = 24
     publish = True
     try:
         opts, args = getopt.getopt(argv, 'c:m:t:n')
@@ -118,7 +120,7 @@ def main(argv):
         if opt == '-c':
             credentials = str(arg)
         if opt == '-t':
-            tdelta = int(arg)
+            tdelta = int(tdelta)
         if opt == '-m':
             max_results = int(arg)
         if opt == '-n':

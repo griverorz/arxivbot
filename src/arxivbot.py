@@ -59,7 +59,7 @@ class papers(object):
             return adate
 
         curr = datetime.strptime(paper['time'], '%Y-%m-%dT%H:%M:%SZ')
-        yest_up = datetime.now() - timedelta(days=1)
+        yest_up = _prev_weekday(datetime.now())
         yest_down = yest_up - timedelta(hours=self.tdelta)
         return (curr > yest_down) & (curr < yest_up)
 

@@ -21,10 +21,8 @@ class papers(object):
         self.raw = None
         self.data = None
 
-
     def __getitem__(self, key):
         return self.data[key]
-
 
     def get(self):
         baseurl = 'http://export.arxiv.org/api/query?search_query=cat:'
@@ -32,10 +30,9 @@ class papers(object):
         sorting = '&sortBy=submittedDate&sortOrder=descending'
         url = baseurl + '+OR+'.join(self.subjects) + results + sorting
         data = urllib2.urlopen(url).read()
-        
+
         fulldoc = BeautifulSoup(data)
         self.raw = fulldoc.findAll('entry')
-
 
     def parse(self):
 
@@ -44,13 +41,13 @@ class papers(object):
             return re.sub('\n[ ]?', '', string)
 
         self.data = [{'time': i.published.text,
-                    'title': _clean_string(i.title.text),
-                    'link': i.id.text}
+                      'title': _clean_string(i.title.text),
+                      'link': i.id.text}
                      for i in self.raw]
 
     def validate(self, paper):
-        def _prev_weekday(adate): 
-            ''' from here: 
+        def _prev_weekday(adate):
+            ''' from here:
             http://stackoverflow.com/questions/12053633/previous-weekday-in-python
             '''
             adate -= timedelta(days=1)
@@ -63,7 +60,6 @@ class papers(object):
         yest_down = yest_up - timedelta(hours=self.tdelta)
         return (curr > yest_down) & (curr < yest_up)
 
-
     def output(self):
         self.parse()
         self.data = [i for i in self.data if self.validate(i)]
@@ -74,7 +70,7 @@ class tweet(object):
     def __init__(self, credentials, data):
         creds = pd.read_csv(credentials, header=None)
         auth = tweepy.OAuthHandler(creds.ix[0, 1], creds.ix[1, 1])
-        auth.set_access_token(creds.ix[2, 1], creds.ix[3,1])
+        auth.set_access_token(creds.ix[2, 1], creds.ix[3, 1])
         self.api = tweepy.API(auth)
         self.data = data
         self.tweets = None
@@ -87,9 +83,8 @@ class tweet(object):
             if len(string) > 121:
                 string = string[0:118] + '...'
             return(string)
-        self.tweets = ['{0} {1}'.format(_shorten(i['title']), i['link']) 
+        self.tweets = ['{0} {1}'.format(_shorten(i['title']), i['link'])
                        for i in self.data]
-        
 
     def publish(self, sleeptime):
         if self.tweets:

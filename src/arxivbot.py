@@ -43,7 +43,7 @@ class papers(object):
         self.data = [{'time': i.published.text,
                       'title': _clean_string(i.title.text),
                       'link': i.id.text}
-                     for i in self.raw]
+                    for i in self.raw]
 
     def validate(self, paper):
         def _prev_weekday(adate):
@@ -80,10 +80,10 @@ class tweet(object):
 
     def create_tweets(self):
         def _shorten(string):
-            if len(string) > 121:
-                string = string[0:118] + '...'
+            if len(string) > 115:
+                string = string[0:112] + '...'
             return(string)
-        self.tweets = ['{0} {1}'.format(_shorten(i['title']), i['link'])
+        self.tweets = ['{0} {1} {2}'.format(_shorten(i['title']), i['link'], "#arxiv")
                        for i in self.data]
 
     def publish(self, sleeptime):

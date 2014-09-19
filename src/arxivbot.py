@@ -80,8 +80,8 @@ class tweet(object):
 
     def create_tweets(self):
         def _shorten(string):
-            if len(string) > 115:
-                string = string[0:112] + '...'
+            if len(string) > 114:
+                string = string[0:111] + '...'
             return(string)
         self.tweets = ['{0} {1} {2}'.format(_shorten(i['title']), i['link'], "#arxiv")
                        for i in self.data]
@@ -102,7 +102,8 @@ class tweet(object):
 def main(argv):
     max_results = 50
     tdelta = 3
-    subjects = ('stat.AP', 'stat.CO', 'stat.ML', 'stat.ME', 'stat.TH')
+    subjects = ('stat.AP', 'stat.CO', 'stat.ML', 'stat.ME', 'stat.TH', 
+                'stat.OT', 'cs.LG', 'cs.IR', 'math.ST', 'cs.SI')
     publish = True
     try:
         opts, args = getopt.getopt(argv, 'c:m:t:n')
@@ -124,7 +125,7 @@ def main(argv):
     data.get()
     data.output()
 
-    tw = tweet(credentials, data)
+    tw = tweet(credentials, data.data)
     tw.create_tweets()
     if publish:
         tw.publish(1)
